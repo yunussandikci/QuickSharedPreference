@@ -19,7 +19,7 @@ object QuickSharedPreference {
 
     fun <T> get(context: Context, key: String, type: Class<T>): T? {
         val jsonValue: String
-        if(cache[key] != null && useCache){
+        if (cache[key] != null && useCache) {
             jsonValue = cache[key].orEmpty()
         } else {
             jsonValue = getSharedPreference(context).getString(key, null).orEmpty()
@@ -28,6 +28,7 @@ object QuickSharedPreference {
         return Gson().fromJson(jsonValue, type)
     }
 
+    @Synchronized
     fun <T> set(context: Context, key: String, value: T): Boolean {
         val sharedPreferencesEditor = getSharedPreference(context).edit()
         val jsonValue = Gson().toJson(value)
@@ -45,10 +46,10 @@ object QuickSharedPreference {
         }
         sharedPreferencesEditor.putString(key, jsonValue).apply()
     }
-
+    
     fun remove(context: Context, key: String): Boolean {
         val sharedPreferencesEditor = getSharedPreference(context).edit()
-        if(useCache) {
+        if (useCache) {
             cache[key] = null
         }
         return sharedPreferencesEditor.remove(key).commit()
@@ -56,7 +57,7 @@ object QuickSharedPreference {
 
     fun removeAsync(context: Context, key: String) {
         val sharedPreferencesEditor = getSharedPreference(context).edit()
-        if(useCache) {
+        if (useCache) {
             cache[key] = null
         }
         sharedPreferencesEditor.remove(key).apply()
@@ -72,10 +73,11 @@ object QuickSharedPreference {
         return getSharedPreference(context).edit().clear().apply()
     }
 
-    fun clearCache() {
+    private fun clearCache() {
         cache = HashMap()
     }
 
+    @Synchronized
     fun setUseCache(boolean: Boolean) {
         this.useCache = boolean
         if (!useCache) {
